@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini-SFU Conference Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg-dark: #090d16;
+        --panel-bg: rgba(22, 30, 46, 0.7);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-blue: #3b82f6;
+        --text-primary: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        background: radial-gradient(circle at top right, #111827, var(--bg-dark));
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+        background: var(--panel-bg);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--panel-border);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      }
+
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-blue), #6366f1);
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .join-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .input-field {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease;
+      }
+
+      .input-field:focus {
+        border-color: var(--accent-blue);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--panel-border);
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-secondary);
+        transition: background 0.3s ease;
+      }
+
+      .status-pill.connected .status-dot {
+        background: var(--accent-green);
+        box-shadow: 0 0 10px var(--accent-green);
+      }
+
+      .status-pill.reconnecting .status-dot {
+        background: #f59e0b;
+        box-shadow: 0 0 10px #f59e0b;
+      }
+
+      .status-pill.disconnected .status-dot {
+        background: var(--accent-red);
+      }
+
+      main {
+        flex: 1;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        flex: 1;
+      }
+
+      .empty-state {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+        border: 2px dashed var(--panel-border);
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.3);
+      }
+
+      .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+        font-size: 18px;
+      }
+
+      .tile {
+        position: relative;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .tile.speaking {
+        border-color: var(--accent-green);
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+        transform: scale(1.01);
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #020617;
+      }
+
+      .tile-label {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(8px);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .tile-speaking-badge {
+        display: none;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-green);
+      }
+
+      .tile.speaking .tile-speaking-badge {
+        display: block;
+      }
+
+      footer {
+        position: sticky;
+        bottom: 20px;
+        align-self: center;
+        background: rgba(22, 30, 46, 0.85);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--panel-border);
+        border-radius: 40px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        margin-top: auto;
+      }
+
+      .btn {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 30px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+        color: #fff;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .btn-danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--accent-red);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: var(--accent-red);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        border: 1px solid var(--panel-border);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .btn-secondary.active {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-green);
+        border-color: rgba(16, 185, 129, 0.4);
+      }
+
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">SFU</span>
+        <span class="title">Selective Forwarding Unit</span>
+      </div>
+      <div class="join-controls">
+        <input id="room" class="input-field" value="demo" placeholder="Room Name" aria-label="Room" />
+        <input id="name" class="input-field" value="Guest" placeholder="Display Name" aria-label="Display name" />
+        <button id="join" class="btn btn-primary">Join Room</button>
+      </div>
+      <div id="status" class="status-pill disconnected">
+        <span class="status-dot"></span>
+        <span id="status-text">Disconnected</span>
+      </div>
+    </header>
+    <main>
+      <div id="grid">
+        <div id="empty-state" class="empty-state">
+          <h3>No Active Video Streams</h3>
+          <p>Click <strong>Join Room</strong> above to enter the WebRTC room, then toggle your Camera or Mic below.</p>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <button id="camera" class="btn btn-secondary" disabled>📷 Camera</button>
+      <button id="mic" class="btn btn-secondary" disabled>🎙️ Mic</button>
+      <button id="leave" class="btn btn-danger" disabled>Leave Room</button>
+    </footer>
+    <script type="module" src="/demo/main.js"></script>
+  </body>
+</html>
