@@ -3,21 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mini-SFU Conference Engine</title>
+    <title>Mini-SFU Engine & Telemetry Inspector</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
       :root {
         --bg-dark: #090d16;
-        --panel-bg: rgba(22, 30, 46, 0.7);
+        --panel-bg: rgba(22, 30, 46, 0.75);
         --panel-border: rgba(255, 255, 255, 0.08);
         --accent-green: #10b981;
         --accent-red: #ef4444;
         --accent-blue: #3b82f6;
+        --accent-purple: #8b5cf6;
         --text-primary: #f3f4f6;
         --text-secondary: #9ca3af;
-        --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
       }
 
       * {
@@ -26,7 +28,7 @@
 
       body {
         margin: 0;
-        font-family: var(--font-family);
+        font-family: var(--font-sans);
         background: radial-gradient(circle at top right, #111827, var(--bg-dark));
         color: var(--text-primary);
         min-height: 100vh;
@@ -38,11 +40,13 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 14px 24px;
+        padding: 12px 24px;
         background: var(--panel-bg);
         backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--panel-border);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        gap: 16px;
+        flex-wrap: wrap;
       }
 
       .logo-group {
@@ -67,10 +71,43 @@
         color: var(--text-primary);
       }
 
+      .nav-tabs {
+        display: flex;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 4px;
+        gap: 4px;
+      }
+
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .tab-btn:hover {
+        color: var(--text-primary);
+      }
+
+      .tab-btn.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
       .join-controls {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
       }
 
       .input-field {
@@ -128,8 +165,20 @@
         padding: 24px;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
 
+      .tab-content {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+      }
+
+      .tab-content.active {
+        display: flex;
+      }
+
+      /* Grid Tab */
       #grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -208,6 +257,164 @@
 
       .tile.speaking .tile-speaking-badge {
         display: block;
+      }
+
+      /* Architecture Pipeline Tab */
+      .architecture-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .metrics-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+      }
+
+      .metric-card {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        backdrop-filter: blur(8px);
+      }
+
+      .metric-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+      }
+
+      .pipeline-diagram {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .diagram-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .diagram-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .diagram-flow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 12px 0;
+      }
+
+      .pipeline-node {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 16px;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .pipeline-node.active {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+      }
+
+      .node-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+        width: fit-content;
+        text-transform: uppercase;
+      }
+
+      .node-badge.ingress { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+      .node-badge.processing { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+      .node-badge.egress { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+
+      .node-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .node-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+
+      .pipeline-arrow {
+        color: var(--text-secondary);
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      /* Inspector Logs Tab */
+      .logs-panel {
+        background: #020617;
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        padding: 16px;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .log-entry {
+        display: flex;
+        gap: 12px;
+        line-height: 1.5;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        padding-bottom: 4px;
+      }
+
+      .log-time {
+        color: var(--text-secondary);
+      }
+
+      .log-event {
+        color: var(--accent-blue);
+        font-weight: 500;
+      }
+
+      .log-data {
+        color: #d1d5db;
+        white-space: pre-wrap;
+        word-break: break-all;
       }
 
       footer {
@@ -289,29 +496,119 @@
         <span class="logo-badge">SFU</span>
         <span class="title">Selective Forwarding Unit</span>
       </div>
+
+      <nav class="nav-tabs">
+        <button id="tab-grid" class="tab-btn active">🎥 Video Grid</button>
+        <button id="tab-pipeline" class="tab-btn">⚡ SFU Architecture</button>
+        <button id="tab-logs" class="tab-btn">📜 Protocol Inspector</button>
+      </nav>
+
       <div class="join-controls">
         <input id="room" class="input-field" value="demo" placeholder="Room Name" aria-label="Room" />
         <input id="name" class="input-field" value="Guest" placeholder="Display Name" aria-label="Display name" />
         <button id="join" class="btn btn-primary">Join Room</button>
       </div>
+
       <div id="status" class="status-pill disconnected">
         <span class="status-dot"></span>
         <span id="status-text">Disconnected</span>
       </div>
     </header>
+
     <main>
-      <div id="grid">
-        <div id="empty-state" class="empty-state">
-          <h3>No Active Video Streams</h3>
-          <p>Click <strong>Join Room</strong> above to enter the WebRTC room, then toggle your Camera or Mic below.</p>
+      <!-- Tab 1: Video Grid -->
+      <div id="content-grid" class="tab-content active">
+        <div id="grid">
+          <div id="empty-state" class="empty-state">
+            <h3>No Active Video Streams</h3>
+            <p>Click <strong>Join Room</strong> above to enter the WebRTC room, then toggle your Camera or Mic below.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: SFU Engine Architecture & Telemetry -->
+      <div id="content-pipeline" class="tab-content">
+        <div class="architecture-panel">
+          <div class="metrics-summary-bar">
+            <div class="metric-card">
+              <span class="metric-title">Ingress Bitrate</span>
+              <span id="metric-ingress" class="metric-value">0.0 Kbps</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Egress Bitrate</span>
+              <span id="metric-egress" class="metric-value">0.0 Kbps</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Active Peers</span>
+              <span id="metric-peers" class="metric-value">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Active Producers</span>
+              <span id="metric-producers" class="metric-value">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Active Consumers</span>
+              <span id="metric-consumers" class="metric-value">0</span>
+            </div>
+          </div>
+
+          <div class="pipeline-diagram">
+            <div class="diagram-header">
+              <span class="diagram-title">Real-Time SFU Packet Pipeline Architecture</span>
+            </div>
+            <div class="diagram-flow">
+              <div class="pipeline-node active">
+                <span class="node-badge ingress">Ingress</span>
+                <span class="node-name">Werift Transport</span>
+                <span class="node-desc">Receives raw UDP RTP packets from publisher WebRTC PeerConnections</span>
+              </div>
+              <span class="pipeline-arrow">➔</span>
+              <div class="pipeline-node active">
+                <span class="node-badge processing">Processing</span>
+                <span class="node-name">RTP Audio Level Parser</span>
+                <span class="node-desc">Extracts audio levels from RTP extension headers to detect active speakers</span>
+              </div>
+              <span class="pipeline-arrow">➔</span>
+              <div class="pipeline-node active">
+                <span class="node-badge processing">Processing</span>
+                <span class="node-name">RTP Sequence Rewriter</span>
+                <span class="node-desc">Rewrites timestamps & sequence numbers per subscriber for seamless stream switches</span>
+              </div>
+              <span class="pipeline-arrow">➔</span>
+              <div class="pipeline-node active">
+                <span class="node-badge processing">Resilience</span>
+                <span class="node-name">Packet Cache & NACK</span>
+                <span class="node-desc">Stores recent packets in ring buffer to fulfill subscriber NACK retransmission requests</span>
+              </div>
+              <span class="pipeline-arrow">➔</span>
+              <div class="pipeline-node active">
+                <span class="node-badge egress">Egress</span>
+                <span class="node-name">Werift Egress Transport</span>
+                <span class="node-desc">Forwards rewritten RTP packets out to subscribed peer WebRTC connections</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Protocol Logs -->
+      <div id="content-logs" class="tab-content">
+        <div id="logs-container" class="logs-panel">
+          <div class="log-entry">
+            <span class="log-time">[System]</span>
+            <span class="log-event">Protocol Inspector Initialized</span>
+            <span class="log-data">Listening for WebSocket envelopes...</span>
+          </div>
         </div>
       </div>
     </main>
+
     <footer>
       <button id="camera" class="btn btn-secondary" disabled>📷 Camera</button>
       <button id="mic" class="btn btn-secondary" disabled>🎙️ Mic</button>
       <button id="leave" class="btn btn-danger" disabled>Leave Room</button>
     </footer>
+
     <script type="module" src="/demo/main.js"></script>
   </body>
 </html>
