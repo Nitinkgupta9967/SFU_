@@ -417,6 +417,79 @@
         word-break: break-all;
       }
 
+      /* Architecture Comparison Card */
+      .comparison-panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .comparison-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+      }
+
+      .comparison-card.sfu {
+        border-color: var(--accent-green);
+        background: rgba(16, 185, 129, 0.05);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+      }
+
+      .comp-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        width: fit-content;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-secondary);
+      }
+
+      .comp-badge.sfu {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--accent-green);
+      }
+
+      .comp-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .comp-stat {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .comp-stat span {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-family: var(--font-mono);
+      }
+
+      .comp-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
       footer {
         position: sticky;
         bottom: 20px;
@@ -585,6 +658,33 @@
                 <span class="node-badge egress">Egress</span>
                 <span class="node-name">Werift Egress Transport</span>
                 <span class="node-desc">Forwards rewritten RTP packets out to subscribed peer WebRTC connections</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="comparison-panel">
+            <div class="diagram-title">WebRTC Architecture Comparison: Mesh vs MCU vs SFU</div>
+            <div class="comparison-grid">
+              <div class="comparison-card">
+                <span class="comp-badge">P2P Mesh</span>
+                <span class="comp-title">Mesh Architecture</span>
+                <span class="comp-stat">Client Upload: <span>O(N)</span> (Spikes with users)</span>
+                <span class="comp-stat">Server Load: <span>Zero</span></span>
+                <span class="comp-desc">Every participant sends media directly to every other participant. Client upload bandwidth explodes beyond 4 users.</span>
+              </div>
+              <div class="comparison-card">
+                <span class="comp-badge">MCU</span>
+                <span class="comp-title">Multipoint Control Unit</span>
+                <span class="comp-stat">Client Upload: <span>O(1)</span></span>
+                <span class="comp-stat">Server CPU: <span>Heavy Transcoding</span></span>
+                <span class="comp-desc">Server decodes and mixes all video streams into 1 composite layout stream. Extremely high CPU cost & decoding delay.</span>
+              </div>
+              <div class="comparison-card sfu">
+                <span class="comp-badge sfu">SFU (Our System)</span>
+                <span class="comp-title">Selective Forwarding Unit</span>
+                <span class="comp-stat">Client Upload: <span>O(1)</span> (Constant 1 upload)</span>
+                <span class="comp-stat">Server CPU: <span>Zero Transcoding</span></span>
+                <span class="comp-desc">Server routes raw UDP RTP packets without decoding video. Ultra-low latency, scaling to 50+ participants per room!</span>
               </div>
             </div>
           </div>
