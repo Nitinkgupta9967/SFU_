@@ -153,8 +153,20 @@ function addLocalTrack(track: MediaStreamTrack, label: string): void {
 }
 
 function addRemoteTrack(track: MediaStreamTrack, peerId: string): void {
+  if (track.kind === 'audio') {
+    let audio = document.getElementById(`audio-${peerId}`) as HTMLAudioElement | null;
+    if (!audio) {
+      audio = document.createElement('audio');
+      audio.id = `audio-${peerId}`;
+      audio.autoplay = true;
+      audio.style.display = 'none';
+      document.body.append(audio);
+    }
+    audio.srcObject = new MediaStream([track]);
+    return;
+  }
   const stream = new MediaStream([track]);
-  addVideo(stream, `${peerId}-${track.id}`, peerId, false);
+  addVideo(stream, `${peerId}-video`, peerId, false);
 }
 
 function addVideo(stream: MediaStream, id: string, label: string, muted: boolean): void {
@@ -183,6 +195,8 @@ function removePeerTiles(peerId: string): void {
   for (const tile of Array.from(grid.querySelectorAll(`[data-peer-id="${peerId}"]`))) {
     tile.remove();
   }
+  const audio = document.getElementById(`audio-${peerId}`);
+  if (audio) audio.remove();
   checkEmptyState();
 }
 
