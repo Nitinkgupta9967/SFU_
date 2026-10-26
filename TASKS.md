@@ -8,7 +8,7 @@ Execution order note: Spikes R4 and S0 run early (after R1) so feasibility of SD
 
 ## REWIND-LIVE & EARLY SPIKES
 
-- [ ] **R1: Standalone RollingMediaBuffer**
+- [x] **R1: Standalone RollingMediaBuffer**
   - **Goal:** Implement `RollingMediaBuffer.ts` to buffer original RTP packets in memory with arrival timestamps and keyframe index, supporting time-based lookup and keyframe-safe eviction.
   - **Files to touch:** `src/sfu/RollingMediaBuffer.ts`, `test/rollingMediaBuffer.test.ts`
   - **Done when:** Unit tests verify packet storage, `findStart(timestampMs)` returns nearest keyframe <= target time, age-based eviction retains the keyframe immediately preceding the window, and memory stays bounded.
